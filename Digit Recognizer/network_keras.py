@@ -19,16 +19,16 @@ n_epochs = 10
 n_batch_size = 512
 
 
-def MLP(x_train, y_train):
-    input_image = Input(shape=(784,))
-    x = Conv2D(32, (3, 3), activation='relu', padding='same')(input_image)
-
-    x = MaxPooling2D((2, 2), padding='same')(x)
-
-    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
-
-    encoded = MaxPooling2D((2, 2), padding='same')(x)
-
+# def MLP(x_train, y_train):
+#     input_image = Input(shape=(784,))
+#     x = Conv2D(32, (3, 3), activation='relu', padding='same')(input_image)
+#
+#     x = MaxPooling2D((2, 2), padding='same')(x)
+#
+#     x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+#
+#     encoded = MaxPooling2D((2, 2), padding='same')(x)
+#
 
 def CNN(x_train, y_train):
     network = design_network()
@@ -124,5 +124,5 @@ if __name__ == '__main__':
     x_train = x_train / 255.0
     y_train = y_train.as_matrix()
     y_train = keras.utils.to_categorical(y_train, 10)
-    prediction = load_pretrained_model(x_train, y_train)
+    prediction = CNN(x_train, y_train)
     build_submission(prediction)
