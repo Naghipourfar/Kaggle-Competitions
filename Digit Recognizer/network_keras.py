@@ -51,6 +51,7 @@ def CNN(x_train, y_train):
 
     x_test = pd.read_csv('./test.csv').as_matrix()
     x_test = x_test.reshape(28000, 28, 28, 1)
+    x_test = x_test / 255.0
     prediction = network.predict(x=x_test)
 
     network.save('./model.hdf5')
@@ -100,6 +101,7 @@ def load_pretrained_model(x_train, y_train):
 
     x_test = pd.read_csv('./test.csv').as_matrix()
     x_test = x_test.reshape(28000, 28, 28, 1)
+    x_test = x_test / 255.0
     prediction = network.predict(x=x_test)
 
     network.save('./model.hdf5')
@@ -119,6 +121,7 @@ if __name__ == '__main__':
     x_train, y_train = load_data()
     x_train = x_train.as_matrix()
     x_train = x_train.reshape(42000, 28, 28, 1)
+    x_train = x_train / 255.0
     y_train = y_train.as_matrix()
     y_train = keras.utils.to_categorical(y_train, 10)
     prediction = load_pretrained_model(x_train, y_train)
