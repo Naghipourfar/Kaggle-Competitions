@@ -18,8 +18,8 @@ TRAINING_PATH = './train.csv'
 TEST_PATH = './test.csv'
 
 # Hyper-Parameters
-n_features = 10
-n_epochs = 10
+n_features = 81
+n_epochs = 10000
 batch_size = 256
 
 
@@ -30,21 +30,21 @@ def load_data(filepath):
 def MLP_model():
     model = Sequential()
     # model.add(Input(shape=(n_features,)))
-    model.add(Dense(64, activation='relu', input_shape=(n_features,)))
-    model.add(Dropout(0.5))
-    model.add(Dense(32, activation='relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(16, activation='relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(8, activation='relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(4, activation='relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(2, activation='relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(1, activation='relu'))
+    # model.add(Dense(64, activation='relu', input_shape=(n_features,)))
+    # model.add(Dropout(0.5))
+    # model.add(Dense(32, activation='relu'))
+    # model.add(Dropout(0.5))
+    # model.add(Dense(16, activation='relu'))
+    # model.add(Dropout(0.5))
+    # model.add(Dense(8, activation='relu'))
+    # model.add(Dropout(0.5))
+    # model.add(Dense(4, activation='relu'))
+    # model.add(Dropout(0.5))
+    # model.add(Dense(2, activation='relu'))
+    # model.add(Dropout(0.5))
+    model.add(Dense(1, input_shape=(n_features, )))
 
-    model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
+    model.compile(optimizer='adam', loss='mse')
 
     return model
 
@@ -58,7 +58,7 @@ def train_model(model, x_train, y_train):
 
 
 def predict(model, x_test):
-    return model.predict(x_test)
+    return pd.DataFrame(model.predict(x_test))
 
 
 def build_submission(x_test, y_pred):
@@ -67,8 +67,8 @@ def build_submission(x_test, y_pred):
     with open('./submission.csv', 'w') as file:
         writer = csv.writer(file)
         writer.writerow(['Id', 'SalePrice'])
-        for i in range(y_pred.shape[0]):
-            writer.writerow([x_test.iloc[i, idx], y_pred[i]])
+        for i in range(len(y_pred)):
+            writer.writerow([x_test.iloc[i, idx], y_pred[i][0]])
 
 
 def preprocess_data(data, test_data):
@@ -80,13 +80,21 @@ def preprocess_data(data, test_data):
     # data = data.dropna(axis=0, how='any')
 
     # 2. Convert Categorical to Dummies
-    print(data.shape, test_data.shape)
-    data = pd.get_dummies(data)
-    test_data = pd.get_dummies(test_data)
+    n_train_samples = data.shape[0]
+
+    y_train = data['SalePrice']
+    train_data = data.drop('SalePrice', axis=1)
+    all_data = train_data.append(test_data)
+    all_data = pd.get_dummies(all_data)
+
+    x_train = all_data.iloc[:n_train_samples, :]
+    x_test = all_data.iloc[n_train_samples:, :]
+
+    print(x_train.shape, x_test.shape)
 
     # 3. Normalize Data
     # data = normalize(data, axis=1)
-    return pd.DataFrame(data), test_data
+    return x_train, y_train, x_test
 
 
 def process_missing_data(data, test_data):
@@ -105,21 +113,21 @@ def process_missing_data(data, test_data):
 
 if __name__ == '__main__':
     training_data = load_data(TRAINING_PATH)
-    x_test = load_data(TEST_PATH)
+    test_data = load_data(TEST_PATH)
 
-    training_data, x_test = preprocess_data(training_data, x_test)
+    x_train, y_train, x_test = preprocess_data(training_data, test_data)
 
-    x_train = training_data.drop(labels=['SalePrice', 'Id'], axis=1)
-    y_train = training_data['SalePrice']
+    # x_train = training_data.drop(labels=['SalePrice', 'Id'], axis=1)
+    # y_train = training_data['SalePrice']
 
-    x_train = pd.DataFrame(normalize(x_train, axis=1))
+    # x_train = pd.DataFrame(normalize(x_train, axis=1))
 
-    n_features = x_train.shape[1]
+    n_features = x_train.shape[1] - 1
 
     model = MLP_model()
 
-    train_model(model, x_train.as_matrix(), y_train.as_matrix())
+    train_model(model, x_train.drop('Id', axis=1).as_matrix(), y_train.as_matrix())
 
     y_test = predict(model, x_test.drop('Id', axis=1).as_matrix())
 
-    build_submission(x_test, y_test)
+    build_submission(x_test, y_test.values.tolist())
