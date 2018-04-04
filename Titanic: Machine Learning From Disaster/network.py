@@ -31,7 +31,7 @@ TEST_PATH = './test.csv'
 
 # Hyper-Parameters
 n_features = 81
-n_epochs = 10
+n_epochs = 1000
 batch_size = 256
 
 
@@ -42,19 +42,19 @@ def load_data(filepath):
 def MLP_model():
     model = Sequential()
     # model.add(Input(shape=(n_features,)))
-    model.add(Dense(64, activation='relu', input_shape=(n_features,)))
+    model.add(Dense(768, activation='relu', input_shape=(n_features,)))
+    model.add(Dropout(0.5))
+    model.add(Dense(512, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(256, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(128, activation='relu'))
     model.add(Dropout(0.5))
     model.add(Dense(32, activation='relu'))
     model.add(Dropout(0.5))
-    model.add(Dense(16, activation='relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(8, activation='relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(4, activation='relu'))
-    model.add(Dropout(0.5))
     model.add(Dense(2, activation='softmax'))
 
-    model.compile(optimizer='adam', loss='categorical_crossentropy')
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
     model.summary()
 
@@ -138,4 +138,4 @@ if __name__ == '__main__':
 
     y_test = predict(model, x_test.drop('PassengerId', axis=1).as_matrix())
 
-    build_submission(x_test, y_test)
+    build_submission(x_test, y_test.as_matrix())
